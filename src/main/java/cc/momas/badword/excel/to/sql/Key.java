@@ -1,4 +1,4 @@
-package com.huluxia.badword.excel.to.sql;
+package cc.momas.badword.excel.to.sql;
 
 import java.util.Date;
 

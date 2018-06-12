@@ -1,4 +1,4 @@
-package com.huluxia.badword.excel.to.sql;
+package cc.momas.badword.excel.to.sql;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,22 +16,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Main {
 	public static void main(String[] args){
-//		String oldFilename = args[0];
-//		String distFileName = (args[1]==null||"".equals(args[1])) ? "D:/dest.sql" : args[1];
-//		String newFileName = args[2];
+
+
 		String oldFilename = "C:\\Users\\sothe\\Desktop\\get done\\敏感词屏蔽\\【20180428更新】查看屏蔽关键词.xlsx";
 		String newFileName = "C:\\Users\\sothe\\Desktop\\查看屏蔽关键词0528.xlsx";
 		String distFileName = "D:/dest.sql";
-		
-		if(oldFilename == null || "".equals(oldFilename)){
-			System.out.println("how to use : ");
-			System.out.println("badwordsql oldfilepath [destfilepath] [newfilepath]");
-			System.out.println("  - oldfilepath is required. ");
-			System.out.println("  - destfilepath default is D:/dest.sql; A file to save sql.");
-			System.out.println("  - newfilapath is a path of new excel filepath.");
-			return;
-		}
-		
+
 		try {
 			Set<Key> oldWords = readExcel(oldFilename);
 			System.out.println(oldWords.size());
