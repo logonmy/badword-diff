@@ -1,7 +1,7 @@
 
-# 旧Excel路径
-oldFilePath: excel/屏蔽关键词0428.xlsx
+# 旧Excel路径,必填
+oldFilePath: /excel/屏蔽关键词0428.xlsx
 # 新Excel路径,不填时程序生成完整的sql语句
-newFilePath: excel/屏蔽关键词0528.xlsx
-# 生成sql文件路径
-destFilePath: excel/dest.sql
+newFilePath: /excel/屏蔽关键词0528.xlsx
+# 生成sql文件路径,必填
+destFilePath: D:/dest.sql

@@ -1,9 +1,6 @@
 package cc.momas.badword.excel.to.sql;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,105 +11,47 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class Main {
-	public static void main(String[] args){
+public class Main implements Runnable {
 
+	private Config config = new Config();
+	private FileUtil files = new FileUtil();
+	private SqlGenerator generator = new SqlGenerator();
 
-		String oldFilename = "C:\\Users\\sothe\\Desktop\\get done\\敏感词屏蔽\\【20180428更新】查看屏蔽关键词.xlsx";
-		String newFileName = "C:\\Users\\sothe\\Desktop\\查看屏蔽关键词0528.xlsx";
-		String distFileName = "D:/dest.sql";
+	public static void main(String[] args) {
+		new Main().run();
+	}
+
+	@Override
+	public void run() {
+
+		InputStream oldFileInputStream = config.getOldFile();
+		InputStream newFileInputStream = config.getNewFile();
+		String destFilePath = config.getDestFilePath();
 
 		try {
-			Set<Key> oldWords = readExcel(oldFilename);
-			System.out.println(oldWords.size());
-			
+
+			Set<Key> oldWords = files.readExcel(oldFileInputStream);
+			System.out.println("旧文件词条数 ： " + oldWords.size());
+
 			Set<Key> newWords = new HashSet<>();
-			if(newFileName != null){
-				newWords = readExcel(newFileName);
+			if (newFileInputStream != null) {
+				newWords = files.readExcel(newFileInputStream);
 			}
-			System.out.println(newWords.size());
-			
+			System.out.println("新文件词条数 ： " + newWords.size());
+
 			newWords.removeAll(oldWords);
-			System.out.println(newWords.size());
-			
-			String sql = generateSql(newWords);
-			writeToFile(distFileName,sql);
-			System.out.println("success process, destinct file : " + distFileName);
-			if(sql.contains("{ERROR}")){
-				System.out.println("there are some error in sql,please check. use {ERROR} string to find error position");
+			System.out.println("新增词条数 ： " + newWords.size());
+
+			System.out.println("开始生成sql");
+			String sql = generator.generateSql(newWords);
+			System.out.println("生成sql完毕,开始写入文件");
+			destFilePath = files.writeToFile(destFilePath, sql);
+			if (sql.contains("{ERROR}")) {
+				System.out.println("生成的过程中发生了一点问题, 请在文件中搜索 {ERROR} 以定位问题sql所在位置");
 			}
-		} catch (IOException e) {
+			System.out.println("文件写入完毕,路径为 : \r\n" + destFilePath);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	// 输出到文件 
-	private static void writeToFile(String distFileName, String sql) throws IOException {
-		File file = new File(distFileName);
-		if(!file.exists()){
-			file.createNewFile();
-		}
-		FileOutputStream fos = new FileOutputStream(file);
-		fos.write(sql.getBytes());
-		fos.flush();
-		fos.close();
-	}
-	
-	// 用来生成sql
-	private static String generateSql(Set<Key> keys) {
-//		INSERT INTO hlx_badword.tb_wj_verb VALUE(null,'销售',0,NOW());
-		StringBuilder sb = new StringBuilder();
-		for (Key key : keys) {
-			sb.append("INSERT INTO ");
-			switch (key.getWordType()) {
-			case Key.VERB:
-				sb.append(" hlx_badword.tb_wj_verb ");
-				break;
-			case Key.NOUN:
-				sb.append(" hlx_badword.tb_wj_noun ");
-				break;
-			case Key.KEYWORD:
-				sb.append(" hlx_badword.tb_wj_keyword ");
-				break;
-			default:
-				sb.append("{ERROR}");
-				break;
-			}
-			
-			sb.append(" VALUE(null,'");
-			sb.append(key.getWord());
-			sb.append("',");
-			sb.append(key.getType());
-			sb.append(",NOW());\r\n");
-		}
-		return sb.toString();
-	}
-
-	private static Set<Key> readExcel(String filepath) throws IOException{
-		FileInputStream in = new FileInputStream(filepath);
-		Workbook workbook = new XSSFWorkbook(in);
-		Sheet sheet = workbook.getSheetAt(0);
-		// Cell cell = row.getCell(1);
-		// System.out.println(cell.getStringCellValue());
-		Set<Key> set = new HashSet<>(6000);
-		//System.out.println(sheet.getLastRowNum());
-		for (int i = 3; i <= sheet.getLastRowNum(); i++) {
-			Row row = sheet.getRow(i);
-			for (int j = 0; j <= row.getLastCellNum(); j = j + 2) {
-				Cell cell = row.getCell(j);
-				if (cell != null && cell.getStringCellValue() != null && !cell.getStringCellValue().trim().equals("")) {
-					Key key = new Key();
-					key.setCreated(new Date());
-					key.setType(j/6);
-					key.setWord(cell.getStringCellValue());
-					key.setWordType(j % 6);
-					set.add(key);
-//					if (key.getType().equals(1)) {
-//						System.out.println(key);
-//					}
-				}
-			}
-		}
-		return set;
-	}
-
 }
